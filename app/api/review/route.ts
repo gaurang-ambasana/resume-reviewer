@@ -1,14 +1,20 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PDFParse } from "pdf-parse";
 import Groq from "groq-sdk";
-import path from "path";
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
 
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      console.error("GROQ_API_KEY is missing from environment variables");
+      return NextResponse.json(
+        { error: "API configuration error." },
+        { status: 500 },
+      );
+    }
+
+    const groq = new Groq({ apiKey });
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -19,28 +25,19 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const workerPath = path.join(
-      process.cwd(),
-      "node_modules",
-      "pdf-parse",
-      "dist",
-      "pdf-parse",
-      "esm",
-      "pdf.worker.mjs",
-    );
-    PDFParse.setWorker(workerPath);
+    const parser = new PDFParse({ data: buffer });
 
-    const parser = new PDFParse({
-      data: buffer,
-      verbosity: 0,
-    });
-
-    const result = await parser.getText();
-    const resumeText = result.text;
+    let resumeText = "";
+    try {
+      const result = await parser.getText();
+      resumeText = result.text;
+    } finally {
+      await parser.destroy();
+    }
 
     if (!resumeText || resumeText.trim().length === 0) {
       return NextResponse.json(
-        { error: "Could not extract text from PDF" },
+        { error: "Could not extract text from PDF." },
         { status: 422 },
       );
     }
@@ -107,7 +104,7 @@ RESPONSE FORMAT:
       ],
       model: "llama-3.3-70b-versatile",
       temperature: 0.7,
-      max_tokens: 4000,
+      max_completion_tokens: 2500,
     });
 
     const summary =
@@ -115,9 +112,13 @@ RESPONSE FORMAT:
 
     return NextResponse.json({ summary });
   } catch (error: unknown) {
-    console.error("Review error:", error);
+    console.error("Review API Error:", error);
     return NextResponse.json(
-      { error: "Failed to process resume: " + (error as Error).message },
+      {
+        error:
+          "Internal Server Error: " + (error as Error).message ||
+          "Unknown error",
+      },
       { status: 500 },
     );
   }
