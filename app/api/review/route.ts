@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import "pdf-parse/worker";
 import { PDFParse } from "pdf-parse";
 import Groq from "groq-sdk";
 
