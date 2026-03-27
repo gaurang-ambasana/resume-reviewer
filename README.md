@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Resume Destroyer
 
-## Getting Started
+Resume review app built with Next.js.
 
-First, run the development server:
+## How It Works
+
+- Resume PDFs are parsed in the browser.
+- The extracted resume text is sent to a Next.js API route.
+- The API route calls Groq using `GROQ_API_KEY` from the server environment.
+
+## Local Development
+
+Set `GROQ_API_KEY` in your environment, then run:
 
 ```bash
-npm run dev
-# or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Notes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- End users do not need their own API key.
+- Resume text is extracted in the browser and sent to your server route for review generation.
+- `webpack` build works in this environment via `./node_modules/.bin/next build --webpack`.
+- The current `yarn lint` command is still blocked by the installed ESLint 10 / Next lint stack mismatch and likely needs dependency reinstallation with a compatible ESLint version.
